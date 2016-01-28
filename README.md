@@ -21,15 +21,13 @@ Set up your `circle.yml` with `machine` dependencies like so:
 machine:
   pre:
   - |
-    sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
-    sudo chmod 0755 /usr/bin/docker
     sudo curl -L -o /usr/bin/circle-docker 'https://archive.barricade.io/binaries/circle-docker/circle-docker.sh'
     sudo chmod 0755 /usr/bin/circle-docker
   services:
     - docker
 ```
 
-This will set up your build envrionment with the latest available Docker (1.9.1), and the `circle-docker` command.
+This will set up your build envrionment with the `circle-docker` command.
 
 Also, set `dependencies` should include a `cache_directories` section:
 
