@@ -2,6 +2,12 @@
 
 A helper for building with Docker on CircleCI.
 
+Once set up, this will cache builds, tag them with branch and build details,
+and push them to a registry.
+
+You end with with builds like `myapp:latest-master` for the latest rolling
+build and `myapp:master-42` for a specific Circle CI build number.
+
 ## Setup
 
 Your CircleCI project environment should be configured with these environment
