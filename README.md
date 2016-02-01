@@ -21,7 +21,7 @@ Set up your `circle.yml` with `machine` dependencies like so:
 machine:
   pre:
   - |
-    sudo curl -L -o /usr/bin/circle-docker 'https://archive.barricade.io/binaries/circle-docker/circle-docker.sh'
+    sudo curl -L -o /usr/bin/circle-docker 'https://raw.githubusercontent.com/barricadeio/circle-docker/v0.1.0/circle-docker.sh'
     sudo chmod 0755 /usr/bin/circle-docker
   services:
     - docker
