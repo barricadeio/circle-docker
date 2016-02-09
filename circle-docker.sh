@@ -11,9 +11,31 @@ do_env(){
   docker info
 }
 
+do_slack(){
+  do_check SLACK_WEBHOOK
+
+  local BOTNAME=circle-docker
+  local CHANNEL=${SLACK_CHANNEL:-"#general"}
+  local URL=${SLACK_WEBHOOK}
+  local MESSAGE=$1
+
+  curl --connect-timeout 3 --max-time 5 -X POST --data-urlencode "payload={\"channel\": \"${CHANNEL}\", \"username\": \"${BOTNAME}\", \"text\": \"${MESSAGE}\"}" ${URL}
+}
+
+do_debug(){
+  echo "[$(date +"%T")] $1"
+}
+
+do_info(){
+  do_debug "$1"
+  if [ ! -z "${SLACK_WEBHOOK}" ] ; then
+    do_slack "$1"
+  fi
+}
+
 do_error(){
   # Print an error message
-  echo "$1"
+  do_debug "$1"
   exit 1
 }
 
@@ -31,17 +53,19 @@ do_cached_build(){
   do_check DOCKER_IMAGE
   do_check CIRCLE_BRANCH
   do_check CIRCLE_BUILD_NUM
-  echo "Restoring image cache..."
 
   if [ -e ~/docker/${DOCKER_IMAGE}.tar ]; then
+    do_debug "Restoring image cache for ${DOCKER_IMAGE}"
     docker load -i ~/docker/${DOCKER_IMAGE}.tar
+  else
+    do_debug "No cached image found for ${DOCKER_IMAGE}, continuing without it"
   fi
 
   do_build
 
-  echo "Caching image..."
+  do_debug "Caching image for ${DOCKER_IMAGE}"
   mkdir -p ~/docker
-  docker save $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM > ~/docker/${DOCKER_IMAGE}.tar
+  docker save ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM} > ~/docker/${DOCKER_IMAGE}.tar
 }
 
 do_build(){
@@ -50,9 +74,9 @@ do_build(){
   do_check DOCKER_IMAGE
   do_check CIRCLE_BRANCH
   do_check CIRCLE_BUILD_NUM
-  echo "Building..."
+  do_info "Building ${DOCKER_IMAGE}"
 
-  docker build -t $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM .
+  docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM} .
 }
 
 do_push(){
@@ -61,16 +85,23 @@ do_push(){
   do_check DOCKER_IMAGE
   do_check CIRCLE_BRANCH
   do_check CIRCLE_BUILD_NUM
-  echo "Pushing and tagging..."
+  do_debug "Pushing and tagging ${DOCKER_IMAGE}"
 
   # Push to Docker registry
-  docker push $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM
+  local NUMBERED_BUILD=${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}
+  do_info "Pushing ${NUMBERED_BUILD}"
+  docker push ${DOCKER_REGISTRY}/${NUMBERED_BUILD}
 
   # Tag latest of each branch
-  docker tag $DOCKER_REGISTRY/$DOCKER_IMAGE:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM $DOCKER_REGISTRY/$DOCKER_IMAGE:latest-$CIRCLE_BRANCH
+  local LATEST_BUILD=${DOCKER_IMAGE}:latest-${CIRCLE_BRANCH}
+  do_debug "Tagging ${NUMBERED_BUILD} as ${LATEST_BUILD}"
+  docker tag ${DOCKER_REGISTRY}/${NUMBERED_BUILD} ${DOCKER_REGISTRY}/${LATEST_BUILD}
 
-  # Push the latest image of each branch tp barricade's docker registry
-  docker push $DOCKER_REGISTRY/$DOCKER_IMAGE:latest-$CIRCLE_BRANCH
+  # Push a 'latest-<branch>' tag to the registry
+  do_info "Pushing ${LATEST_BUILD}"
+  docker push ${DOCKER_REGISTRY}/${LATEST_BUILD}
+
+  do_info "${NUMBERED_BUILD} has been pushed to the registry and tagged as ${LATEST_BUILD}"
 }
 
 do_login(){
@@ -79,7 +110,7 @@ do_login(){
   do_check DOCKER_PASSWORD
   do_check DOCKER_EMAIL
 
-  docker login -u $DOCKER_USER -p $DOCKER_PASSWORD -e $DOCKER_EMAIL $DOCKER_REGISTRY
+  docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} -e ${DOCKER_EMAIL} ${DOCKER_REGISTRY}
 }
 
 do_config(){
