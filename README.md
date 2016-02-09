@@ -53,8 +53,11 @@ cached:
 ```yml
 dependencies:
   override:
-      - circle-docker cached_build myapp
+    - circle-docker env
+    - circle-docker cached_build myapp
 ```
+
+The `circle-docker env` command outputs some debug information about Docker (not required, just useful).
 
 ### Pushing
 
