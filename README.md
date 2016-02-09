@@ -8,6 +8,8 @@ and push them to a registry.
 You end with with builds like `myapp:latest-master` for the latest rolling
 build and `myapp:master-42` for a specific Circle CI build number.
 
+Optionally, [circle-docker can be configured to send progress notifications via Slack](#slack-integration).
+
 ## Setup
 
 Your CircleCI project environment should be configured with these environment
@@ -74,3 +76,19 @@ deployment:
     commands:
       - circle-docker push myapp
 ```
+
+## Slack Integration
+
+You can optionally configure Slack notifications for build progress via
+webhooks.
+
+To do so, set an environment variable called `SLACK_WEBHOOK` in your project
+environment with the webhook URL. [You can read more about Slack webhooks here.](https://api.slack.com/incoming-webhooks)
+
+By default, this will send notifications to your `#general` channel. This can
+be overridden by setting a `SLACK_CHANNEL` environment variable.
+
+When set up, you get notifications when a build has started, when it's begun
+pushing, and when it has completed:
+
+![Example of Slack notifications](http://i.imgur.com/U7sPELl.png)
