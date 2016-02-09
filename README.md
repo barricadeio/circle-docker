@@ -5,7 +5,7 @@ A helper for building with Docker on CircleCI.
 Once set up, this will cache builds, tag them with branch and build details,
 and push them to a registry.
 
-You end with with builds like `myapp:latest-master` for the latest rolling
+You end up with builds like `myapp:latest-master` for the latest rolling
 build and `myapp:master-42` for a specific Circle CI build number.
 
 Optionally, [circle-docker can be configured to send progress notifications via Slack](#slack-integration).
