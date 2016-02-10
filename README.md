@@ -37,7 +37,7 @@ machine:
 
 This will set up your build envrionment with the `circle-docker` command.
 
-Also, set `dependencies` should include a `cache_directories` section:
+Also, `dependencies` should include a `cache_directories` section:
 
 ```yml
 dependencies:
