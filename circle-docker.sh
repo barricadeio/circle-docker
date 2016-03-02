@@ -75,7 +75,7 @@ do_registry_cached_build(){
   do_check DOCKER_IMAGE
   do_check CIRCLE_BRANCH
 
-  do_debug "Pulling latest tag for ${DOCKER_IMAGE}"
+  do_debug "Pulling latest-${CIRCLE_BRANCH} tag for ${DOCKER_IMAGE}"
   docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:latest-${CIRCLE_BRANCH}
 }
 
