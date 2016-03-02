@@ -4,6 +4,7 @@ set -o errexit
 
 DOCKER_STEP=$1
 DOCKER_IMAGE=$2
+BUILD_OPTS=$3
 
 do_env(){
   # Docker environment
@@ -47,8 +48,8 @@ do_check(){
   fi
 }
 
-do_cached_build(){
-  # Use Circle's cache to improve build times
+do_directory_cached_build(){
+  # Use Circle's directory cache to improve build times
   do_check DOCKER_REGISTRY
   do_check DOCKER_IMAGE
   do_check CIRCLE_BRANCH
@@ -68,7 +69,17 @@ do_cached_build(){
   docker save ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM} > ~/docker/${DOCKER_IMAGE}.tar
 }
 
-do_build(){
+do_registry_cached_build(){
+  # Use docker-registry's image as cache to improve build times
+  do_check DOCKER_REGISTRY
+  do_check DOCKER_IMAGE
+  do_check CIRCLE_BRANCH
+
+  do_debug "Pulling latest-${CIRCLE_BRANCH} tag for ${DOCKER_IMAGE}"
+  docker pull ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:latest-${CIRCLE_BRANCH}
+}
+
+do_uncached_build(){
   # Build Docker image with Docker tag as CircleCI build number
   do_check DOCKER_REGISTRY
   do_check DOCKER_IMAGE
@@ -125,9 +136,9 @@ circle-docker - helper for pushing Docker images from CircleCI
 
 Commands:
 
-build <image name>           Build an image.
-cached_build <image name>    Build an image using the Circle cache directory.
-push  <image name>           Push a build to the registry.
+build <image name> [<cache type>]      Build an image. [<cache type>: Empty means uncached build]
+                                                       [Other values: directory_cached, registry_cached]
+push  <image name>                     Push a build to the registry.
 
 This tool expects the following enviroment variables (in addition to Circle's built in ones):
 - DOCKER_USER
@@ -141,11 +152,23 @@ EndHelp
 case ${DOCKER_STEP} in
   build)
     do_config
-    do_build
-    ;;
-  cached_build)
-    do_config
-    do_cached_build
+
+    case ${BUILD_OPTS} in
+      directory_cached)
+        do_directory_cached_build
+        ;;
+      registry_cached)
+        do_registry_cached_build
+        ;;
+      '')
+        do_uncached_build
+        ;;
+      *)
+        do_help
+        exit 1
+        ;;
+    esac
+
     ;;
   push)
     do_config
@@ -155,7 +178,7 @@ case ${DOCKER_STEP} in
     do_env
     ;;
   *)
-  do_help
-  exit 1
+    do_help
+    exit 1
     ;;
 esac
