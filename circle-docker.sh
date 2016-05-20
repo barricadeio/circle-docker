@@ -76,7 +76,7 @@ do_build(){
   do_check CIRCLE_BUILD_NUM
   do_info "Building ${DOCKER_IMAGE}"
 
-  docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM} .
+  docker build -t ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM} ${DOCKER_BUILD_OPTS} .
 }
 
 do_push(){
@@ -134,6 +134,9 @@ This tool expects the following enviroment variables (in addition to Circle's bu
 - DOCKER_PASSWORD
 - DOCKER_EMAIL
 - DOCKER_REGISTRY
+
+The following optional environment variables are supported:
+- DOCKER_BUILD_OPTS   additional options to the docker build command
 EndHelp
 }
 
